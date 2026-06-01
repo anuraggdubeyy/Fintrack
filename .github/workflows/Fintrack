@@ -1,0 +1,786 @@
+cat << 'HTMLEOF' > /home/claude/finance_tracker_2026.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance Terminal 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#060d18;--panel:#0b1628;--panel2:#0f1e35;--border:#162338;--border2:#1e3352;
+  --txt:#e2ecf8;--txt2:#8ba3c0;--txt3:#3d5a7a;
+  --green:#00e5a0;--red:#ff4757;--amber:#ffb020;--blue:#4a9eff;--purple:#b388ff;--cyan:#00d4ff;
+  --green-d:#00201a;--red-d:#200a0a;--amber-d:#1f1200;--blue-d:#071830;
+  --mono:'Space Mono',monospace;--sans:'DM Sans',sans-serif;
+}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:var(--sans)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+/* LAYOUT */
+.shell{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+.sidebar{background:var(--panel);border-right:1px solid var(--border);padding:20px 0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.main{padding:20px;overflow-y:auto;max-height:100vh}
+
+/* SIDEBAR */
+.sb-logo{padding:0 18px 20px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.sb-logo-icon{width:36px;height:36px;background:#0f3fa8;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.sb-logo-icon i{color:#4a9eff;font-size:18px}
+.sb-app{font-family:var(--mono);font-size:13px;color:var(--txt);font-weight:700;letter-spacing:.5px}
+.sb-year{font-size:11px;color:var(--txt3);margin-top:2px}
+.sb-section{padding:0 12px;margin-bottom:6px}
+.sb-section-title{font-size:9px;color:var(--txt3);letter-spacing:1.5px;text-transform:uppercase;padding:0 6px;margin-bottom:6px}
+.sb-month{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:12px;color:var(--txt2);transition:.15s}
+.sb-month:hover{background:var(--panel2);color:var(--txt)}
+.sb-month.active{background:#0f3fa8;color:#fff}
+.sb-month.active .sb-dot{background:var(--blue)}
+.sb-month-name{display:flex;align-items:center;gap:8px}
+.sb-dot{width:6px;height:6px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.sb-dot.has{background:var(--green);box-shadow:0 0 6px var(--green)}
+.sb-amt{font-family:var(--mono);font-size:10px;color:var(--txt3)}
+.sb-month.active .sb-amt{color:#93c5fd}
+.sb-nav{padding:0 12px;margin-top:auto;padding-top:16px;border-top:1px solid var(--border)}
+.sb-nav-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;cursor:pointer;font-size:12px;color:var(--txt3);transition:.15s;margin-bottom:2px}
+.sb-nav-item:hover{background:var(--panel2);color:var(--txt2)}
+.sb-nav-item i{font-size:15px}
+
+/* TOP BAR */
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.page-title{font-family:var(--mono);font-size:16px;color:var(--txt);font-weight:700}
+.page-sub{font-size:11px;color:var(--txt3);margin-top:2px}
+.topbar-actions{display:flex;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;font-size:12px;cursor:pointer;transition:.15s;border:none;font-family:var(--sans)}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--txt2)}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue)}
+.btn-primary{background:#0f3fa8;color:#93c5fd;border:1px solid #1d56c7}
+.btn-primary:hover{background:#1d56c7}
+.btn-green{background:var(--green-d);color:var(--green);border:1px solid #004d36}
+.btn-green:hover{background:#003d2a}
+
+/* KPI CARDS */
+.kgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.kcard{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden}
+.kcard::before{content:'';position:absolute;top:0;left:16px;right:16px;height:1px}
+.kcard.g::before{background:var(--green);box-shadow:0 0 8px var(--green)}
+.kcard.r::before{background:var(--red)}
+.kcard.a::before{background:var(--amber)}
+.kcard.b::before{background:var(--blue)}
+.kcard.p::before{background:var(--purple)}
+.kcard.c::before{background:var(--cyan)}
+.klbl{font-size:9px;color:var(--txt3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;font-family:var(--mono)}
+.kval{font-family:var(--mono);font-size:19px;font-weight:700}
+.kval.g{color:var(--green)}.kval.r{color:var(--red)}.kval.a{color:var(--amber)}.kval.b{color:var(--blue)}.kval.p{color:var(--purple)}.kval.c{color:var(--cyan)}
+.ksub{font-size:10px;color:var(--txt3);margin-top:4px}
+
+/* PANELS */
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.row3{display:grid;grid-template-columns:1.5fr 1fr;gap:12px;margin-bottom:14px}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px}
+.panel-title{font-size:9px;color:var(--txt3);letter-spacing:1px;text-transform:uppercase;font-family:var(--mono);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.pt-action{color:var(--blue);font-size:10px;cursor:pointer;letter-spacing:0;text-transform:none;font-family:var(--sans)}
+
+/* TRANSACTION FORM */
+.form-row{display:grid;gap:8px;margin-bottom:10px}
+.form-row.cols2{grid-template-columns:1fr 1fr}
+.form-row.cols3{grid-template-columns:1fr 1fr 1fr}
+.flabel{font-size:9px;color:var(--txt3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;font-family:var(--mono)}
+.finput{width:100%;background:#07111d;border:1px solid var(--border);color:var(--txt);border-radius:7px;padding:8px 10px;font-size:12px;outline:none;font-family:var(--sans);transition:.15s}
+.finput:focus{border-color:var(--blue);background:#091928}
+.finput option{background:#0b1628}
+
+/* TRANSACTION TYPE TOGGLE */
+.type-toggle{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:#07111d;border:1px solid var(--border);border-radius:8px;padding:4px;margin-bottom:12px}
+.ttype{padding:6px;text-align:center;border-radius:6px;cursor:pointer;font-size:11px;color:var(--txt3);transition:.15s;font-weight:500}
+.ttype:hover{color:var(--txt2)}
+.ttype.active-exp{background:var(--red-d);color:var(--red);border:1px solid #4a0f0f}
+.ttype.active-inc{background:var(--green-d);color:var(--green);border:1px solid #004d36}
+.ttype.active-trf{background:var(--blue-d);color:var(--blue);border:1px solid #0d3060}
+
+/* BUDGET BARS */
+.cat-row{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.cat-name{font-size:11px;color:var(--txt2);width:108px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track{flex:1;height:4px;background:#0c1f35;border-radius:2px;overflow:hidden}
+.fill{height:100%;border-radius:2px;transition:width .5s ease}
+.fill.safe{background:var(--green)}.fill.warn{background:var(--amber)}.fill.over{background:var(--red)}
+.cpct{font-size:10px;font-family:var(--mono);width:32px;text-align:right;flex-shrink:0}
+.cpct.safe{color:var(--green)}.cpct.warn{color:var(--amber)}.cpct.over{color:var(--red)}
+
+/* TXN LIST */
+.txn-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #0a1a2c}
+.txn-item:last-child{border-bottom:none}
+.tdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.tdesc{flex:1;font-size:12px;color:var(--txt2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tdate{font-size:10px;color:var(--txt3);flex-shrink:0;font-family:var(--mono);min-width:44px}
+.ttype-badge{font-size:9px;padding:2px 7px;border-radius:20px;flex-shrink:0;font-weight:600}
+.ttype-badge.exp{background:var(--red-d);color:var(--red)}
+.ttype-badge.inc{background:var(--green-d);color:var(--green)}
+.ttype-badge.trf{background:var(--blue-d);color:var(--blue)}
+.tamt{font-family:var(--mono);font-size:12px;font-weight:700;flex-shrink:0;min-width:64px;text-align:right}
+.tamt.exp{color:var(--red)}.tamt.inc{color:var(--green)}.tamt.trf{color:var(--blue)}
+.tdel-btn{background:none;border:none;color:var(--txt3);cursor:pointer;padding:2px 3px;font-size:13px;flex-shrink:0;border-radius:4px}
+.tdel-btn:hover{color:var(--red);background:var(--red-d)}
+
+/* CHART */
+.chart-wrap{position:relative}
+
+/* CASHFLOW */
+.cf-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #0a1a2c;font-size:12px}
+.cf-row:last-child{border-bottom:none}
+.cf-label{color:var(--txt3)}
+.cf-val{font-family:var(--mono);font-weight:700}
+
+/* SEARCH BAR */
+.search-row{display:flex;gap:8px;margin-bottom:12px}
+.search-row .finput{flex:1}
+
+/* ALL TXN TABLE */
+.all-table-wrap{overflow-x:auto}
+.all-table{width:100%;border-collapse:collapse;font-size:12px}
+.all-table th{font-size:9px;color:var(--txt3);letter-spacing:1px;text-transform:uppercase;font-family:var(--mono);padding:8px 10px;text-align:left;border-bottom:1px solid var(--border2);white-space:nowrap}
+.all-table td{padding:8px 10px;border-bottom:1px solid #0a1a2c;color:var(--txt2);vertical-align:middle}
+.all-table tr:hover td{background:#0a1a2c}
+
+/* ALERT */
+.alert{background:var(--red-d);border:1px solid #4a0f0f;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#fca5a5;display:none;align-items:center;gap:10px}
+.alert.show{display:flex}
+
+/* FEEDBACK */
+.feedback-msg{font-size:11px;text-align:center;padding:6px 0;min-height:20px}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .kgrid{grid-template-columns:repeat(2,1fr)}
+  .row2,.row3{grid-template-columns:1fr}
+}
+@media print{.sidebar,.topbar-actions,.tdel-btn,.type-toggle{display:none}}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-icon"><i class="ti ti-chart-candlestick"></i></div>
+      <div class="sb-app">FINANCE.26</div>
+      <div class="sb-year">Personal Money Terminal</div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-section-title">Months</div>
+      <div id="sb-months"></div>
+    </div>
+
+    <div class="sb-nav">
+      <div class="sb-nav-item" onclick="showView('dashboard')"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
+      <div class="sb-nav-item" onclick="showView('all')"><i class="ti ti-list"></i> All Transactions</div>
+      <div class="sb-nav-item" onclick="exportCSV()"><i class="ti ti-download"></i> Export CSV</div>
+      <div class="sb-nav-item" onclick="clearAll()"><i class="ti ti-trash"></i> Clear All Data</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="main-area">
+    <div id="view-dashboard">
+      <div class="topbar">
+        <div>
+          <div class="page-title" id="page-title">MAY 2026</div>
+          <div class="page-sub" id="page-sub">Monthly overview · Finance Terminal</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost" onclick="exportCSV()"><i class="ti ti-download"></i> CSV</button>
+          <button class="btn btn-primary" onclick="document.getElementById('f-desc').focus()"><i class="ti ti-plus"></i> Add</button>
+        </div>
+      </div>
+
+      <div class="alert" id="alert-bar"><i class="ti ti-alert-triangle" style="font-size:16px;flex-shrink:0"></i><span id="alert-msg"></span></div>
+
+      <div class="kgrid" id="kgrid"></div>
+
+      <div class="row3">
+        <!-- Budget tracker -->
+        <div class="panel">
+          <div class="panel-title">Budget tracker
+            <span class="pt-action" id="toggle-lbl" onclick="toggleAmts()">Show amounts</span>
+          </div>
+          <div id="cat-tracker"></div>
+        </div>
+
+        <!-- Add transaction -->
+        <div class="panel">
+          <div class="panel-title">Record transaction</div>
+
+          <div class="type-toggle" id="type-toggle">
+            <div class="ttype active-exp" data-type="expense" onclick="setType('expense')"><i class="ti ti-arrow-up-right"></i> Expense</div>
+            <div class="ttype" data-type="income" onclick="setType('income')"><i class="ti ti-arrow-down-left"></i> Income</div>
+            <div class="ttype" data-type="transfer" onclick="setType('transfer')"><i class="ti ti-arrows-exchange"></i> Transfer</div>
+          </div>
+
+          <div class="form-row">
+            <div>
+              <div class="flabel">Description</div>
+              <input class="finput" id="f-desc" type="text" placeholder="e.g. Rent payment, Salary, UPI to savings" autocomplete="off">
+            </div>
+          </div>
+
+          <div class="form-row cols3">
+            <div>
+              <div class="flabel">Date</div>
+              <input class="finput" id="f-date" type="date">
+            </div>
+            <div>
+              <div class="flabel">Amount (₹)</div>
+              <input class="finput" id="f-amt" type="number" min="0" placeholder="0" step="0.01">
+            </div>
+            <div>
+              <div class="flabel">Account</div>
+              <select class="finput" id="f-mode">
+                <option>HDFC Bank</option>
+                <option>Cash</option>
+                <option>Credit Card</option>
+                <option>Zapp Wallet</option>
+                <option>FamPay</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row" id="cat-row-wrap">
+            <div>
+              <div class="flabel">Category</div>
+              <select class="finput" id="f-cat">
+                <option value="auto">Auto-detect</option>
+                <optgroup label="Expense">
+                  <option>Housing & Rent</option>
+                  <option>Food & Dining</option>
+                  <option>Groceries</option>
+                  <option>Transport</option>
+                  <option>Utilities & Bills</option>
+                  <option>Lifestyle/Vices</option>
+                  <option>Spiritual/Devotion</option>
+                  <option>Family/Pocket Money</option>
+                  <option>Investments/Savings</option>
+                  <option>Debt Repayment</option>
+                  <option>Clothing & Shopping</option>
+                  <option>Personal Care</option>
+                  <option>Family Gifting</option>
+                  <option>Pet/Animal Care</option>
+                  <option>Education & Exams</option>
+                  <option>Family Transfers</option>
+                  <option>Uncategorized</option>
+                </optgroup>
+                <optgroup label="Income">
+                  <option>Salary</option>
+                  <option>Freelance / Side Income</option>
+                  <option>Reimbursement</option>
+                  <option>Returned Money</option>
+                  <option>Other Income</option>
+                </optgroup>
+                <optgroup label="Transfer">
+                  <option>Bank to Wallet</option>
+                  <option>Wallet to Bank</option>
+                  <option>Account to Account</option>
+                  <option>Loan Repayment Transfer</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row cols2" id="transfer-row" style="display:none">
+            <div>
+              <div class="flabel">From account</div>
+              <select class="finput" id="f-from">
+                <option>HDFC Bank</option><option>Cash</option><option>Zapp Wallet</option><option>FamPay</option><option>Credit Card</option>
+              </select>
+            </div>
+            <div>
+              <div class="flabel">To account</div>
+              <select class="finput" id="f-to">
+                <option>Cash</option><option>HDFC Bank</option><option>Zapp Wallet</option><option>FamPay</option><option>Savings Account</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" style="width:100%;padding:9px;margin-top:4px;font-size:13px;justify-content:center" onclick="addTxn()">
+            <i class="ti ti-plus"></i> <span id="add-btn-label">Add Expense</span>
+          </button>
+          <div class="feedback-msg" id="feedback"></div>
+
+          <div style="height:1px;background:var(--border);margin:10px 0"></div>
+          <div class="panel-title" style="margin-bottom:8px">Recent — <span id="recent-month-lbl">May</span></div>
+          <div id="recent-list"></div>
+        </div>
+      </div>
+
+      <div class="row2">
+        <!-- Monthly chart -->
+        <div class="panel">
+          <div class="panel-title">2026 cash flow <span class="pt-action" onclick="showView('all')">View all →</span></div>
+          <div class="chart-wrap" style="height:220px">
+            <canvas id="yrChart" role="img" aria-label="Monthly income vs expense bar chart for 2026">Monthly income and expenses for all months of 2026.</canvas>
+          </div>
+          <div style="display:flex;gap:16px;margin-top:10px">
+            <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--txt3)"><span style="width:10px;height:10px;border-radius:2px;background:var(--green);display:inline-block"></span>Income</span>
+            <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--txt3)"><span style="width:10px;height:10px;border-radius:2px;background:var(--red);display:inline-block"></span>Expense</span>
+            <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--txt3)"><span style="width:10px;height:10px;border-radius:2px;background:var(--blue);display:inline-block"></span>Net</span>
+          </div>
+        </div>
+
+        <!-- Monthly cashflow summary -->
+        <div class="panel">
+          <div class="panel-title">Cash flow — <span id="cf-month-lbl">May 2026</span></div>
+          <div id="cf-detail"></div>
+          <div style="height:1px;background:var(--border);margin:10px 0"></div>
+          <div class="panel-title" style="margin-bottom:8px">Transfers this month</div>
+          <div id="trf-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALL TRANSACTIONS VIEW -->
+    <div id="view-all" style="display:none">
+      <div class="topbar">
+        <div>
+          <div class="page-title">ALL TRANSACTIONS</div>
+          <div class="page-sub">Complete 2026 ledger</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost" onclick="showView('dashboard')"><i class="ti ti-arrow-left"></i> Back</button>
+          <button class="btn btn-ghost" onclick="exportCSV()"><i class="ti ti-download"></i> CSV</button>
+        </div>
+      </div>
+      <div class="search-row">
+        <input class="finput" id="search-q" type="text" placeholder="Search description or category..." oninput="renderAll()" style="flex:1">
+        <select class="finput" id="filter-mon" onchange="renderAll()" style="width:110px">
+          <option value="">All months</option>
+        </select>
+        <select class="finput" id="filter-type" onchange="renderAll()" style="width:110px">
+          <option value="">All types</option>
+          <option value="expense">Expense</option>
+          <option value="income">Income</option>
+          <option value="transfer">Transfer</option>
+        </select>
+        <select class="finput" id="filter-cat" onchange="renderAll()" style="width:140px">
+          <option value="">All categories</option>
+        </select>
+      </div>
+      <div class="panel">
+        <div class="all-table-wrap">
+          <table class="all-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Description</th><th>Type</th><th>Category</th><th>Account</th><th>Amount</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="all-tbody"></tbody>
+          </table>
+          <div id="all-count" style="font-size:11px;color:var(--txt3);text-align:center;padding:10px 0"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTHS_FULL=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const SALARY=20000;
+const BUDGETS={
+  'Housing & Rent':7300,'Family/Pocket Money':3000,'Debt Repayment':2000,
+  'Utilities & Bills':1400,'Transport':1500,'Groceries':1500,'Spiritual/Devotion':1200,
+  'Investments/Savings':1000,'Food & Dining':1000,'Clothing & Shopping':700,
+  'Family Gifting':700,'Personal Care':500,'Lifestyle/Vices':400,
+  'Family Transfers':400,'Education & Exams':200,'Pet/Animal Care':100,'Uncategorized':500
+};
+const CAT_COLORS={
+  'Housing & Rent':'#ef4444','Family/Pocket Money':'#4a9eff','Debt Repayment':'#b388ff',
+  'Utilities & Bills':'#00d4ff','Transport':'#00e5a0','Groceries':'#4ade80',
+  'Spiritual/Devotion':'#ffb020','Investments/Savings':'#818cf8','Food & Dining':'#fb923c',
+  'Clothing & Shopping':'#f472b6','Family Gifting':'#2dd4bf','Personal Care':'#c084fc',
+  'Lifestyle/Vices':'#ff4757','Family Transfers':'#94a3b8','Education & Exams':'#38bdf8',
+  'Pet/Animal Care':'#a3e635','Uncategorized':'#475569',
+  'Salary':'#00e5a0','Freelance / Side Income':'#4ade80','Reimbursement':'#2dd4bf',
+  'Returned Money':'#38bdf8','Other Income':'#818cf8',
+  'Bank to Wallet':'#4a9eff','Wallet to Bank':'#4a9eff','Account to Account':'#4a9eff',
+  'Loan Repayment Transfer':'#b388ff'
+};
+const KW={
+  'rent':'Housing & Rent','electricity':'Housing & Rent','landlord':'Housing & Rent',
+  'samosa':'Food & Dining','puri':'Food & Dining','chai':'Food & Dining','pizza':'Food & Dining',
+  'burger':'Food & Dining','maggi':'Food & Dining','maggie':'Food & Dining','momos':'Food & Dining',
+  'ice cream':'Food & Dining','icecream':'Food & Dining','gola':'Food & Dining',
+  'snack':'Food & Dining','biscuit':'Food & Dining','chips':'Food & Dining','cake':'Food & Dining',
+  'juice':'Food & Dining','paani':'Food & Dining','restaurant':'Food & Dining',
+  'swiggy':'Food & Dining','zomato':'Food & Dining',
+  'atta':'Groceries','wheat':'Groceries','milk':'Groceries','grocery':'Groceries',
+  'vegetable':'Groceries','mango':'Groceries','apple':'Groceries','lemon':'Groceries',
+  'curd':'Groceries','sev':'Groceries','dmart':'Groceries','kirana':'Groceries',
+  'fuel':'Transport','petrol':'Transport','tyre':'Transport','puncture':'Transport',
+  'cab':'Transport','ola':'Transport','uber':'Transport','activa':'Transport',
+  'recharge':'Utilities & Bills','airtel':'Utilities & Bills','jio':'Utilities & Bills',
+  'internet':'Utilities & Bills','water':'Utilities & Bills','surcharge':'Utilities & Bills',
+  'smoking':'Lifestyle/Vices','cigarette':'Lifestyle/Vices','tobacco':'Lifestyle/Vices',
+  'sutta':'Lifestyle/Vices','sudhir':'Lifestyle/Vices','alcohol':'Lifestyle/Vices',
+  'pooja':'Spiritual/Devotion','puja':'Spiritual/Devotion','mandir':'Spiritual/Devotion',
+  'temple':'Spiritual/Devotion','fast':'Spiritual/Devotion','flowers':'Spiritual/Devotion',
+  'honey':'Spiritual/Devotion','diya':'Spiritual/Devotion','hanuman':'Spiritual/Devotion',
+  'mummy':'Family/Pocket Money','mama':'Family/Pocket Money','pocket money':'Family/Pocket Money',
+  'didi':'Family Transfers','given to':'Family Transfers',
+  'sip':'Investments/Savings','mutual fund':'Investments/Savings','groww':'Investments/Savings',
+  'emi':'Debt Repayment','mpokket':'Debt Repayment','loan':'Debt Repayment',
+  'zudio':'Clothing & Shopping','amazon':'Clothing & Shopping','jeans':'Clothing & Shopping',
+  'shoes':'Clothing & Shopping','kurti':'Clothing & Shopping',
+  'haircut':'Personal Care','beard':'Personal Care','salon':'Personal Care','body wash':'Personal Care',
+  'exam':'Education & Exams','pencil':'Education & Exams','stationery':'Education & Exams',
+  'dog':'Pet/Animal Care','kaalu':'Pet/Animal Care',
+  'gift':'Family Gifting','birthday':'Family Gifting','mother':'Family Gifting',
+  'salary':'Salary','stipend':'Salary','income':'Salary','credited':'Salary',
+  'transfer':'Bank to Wallet','wallet':'Bank to Wallet','atm':'Bank to Wallet'
+};
+
+function autocat(desc,type){
+  const d=desc.toLowerCase();
+  const sorted=Object.entries(KW).sort((a,b)=>b[0].length-a[0].length);
+  for(const[k,v]of sorted)if(d.includes(k))return v;
+  if(type==='income')return 'Salary';
+  if(type==='transfer')return 'Bank to Wallet';
+  return 'Uncategorized';
+}
+
+const MAY_SEED=[
+  {date:'2026-05-12',desc:'Salary — HDFC Credit',cat:'Salary',amt:20000,type:'income',mode:'HDFC Bank'},
+  {date:'2026-05-13',desc:'ATM Cash Withdrawal',cat:'Bank to Wallet',amt:12000,type:'transfer',mode:'HDFC Bank',to:'Cash'},
+  {date:'2026-05-18',desc:'Transfer to Zapp Wallet',cat:'Bank to Wallet',amt:117,type:'transfer',mode:'HDFC Bank',to:'Zapp Wallet'},
+  {date:'2026-05-21',desc:'Transfer to Zapp Wallet',cat:'Bank to Wallet',amt:276,type:'transfer',mode:'HDFC Bank',to:'Zapp Wallet'},
+  {date:'2026-05-02',desc:'Samosa Chaat (family)',cat:'Food & Dining',amt:140,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-02',desc:'Mangoes for Juice',cat:'Groceries',amt:100,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-03',desc:'Haircut & Beard',cat:'Personal Care',amt:150,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-03',desc:'Smoking with Sudhir',cat:'Lifestyle/Vices',amt:24,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-06',desc:'Wheat Atta for Home',cat:'Groceries',amt:800,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-09',desc:'Paani Puri with Mummy',cat:'Food & Dining',amt:30,type:'expense',mode:'Cash'},
+  {date:'2026-05-10',desc:'Fuel for Bike',cat:'Transport',amt:260,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-10',desc:'Sweets Monday Fast',cat:'Spiritual/Devotion',amt:140,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-10',desc:'Milk + Curd Monday Fast',cat:'Spiritual/Devotion',amt:30,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-10',desc:'Flowers + Honey Monday Fast',cat:'Spiritual/Devotion',amt:50,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-10',desc:'Cake for Mummy — Mother\'s Day',cat:'Family Gifting',amt:150,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-11',desc:'Mummy Mobile Recharge',cat:'Utilities & Bills',amt:301,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-13',desc:'Mummy Pocket Money',cat:'Family/Pocket Money',amt:2000,type:'expense',mode:'Cash'},
+  {date:'2026-05-14',desc:'Fuel for Bike',cat:'Transport',amt:280,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-14',desc:'Smoking before CA Exam',cat:'Lifestyle/Vices',amt:24,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-14',desc:'Diya — Hanuman Temple',cat:'Spiritual/Devotion',amt:20,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-15',desc:'SIP SBI PSU Fund',cat:'Investments/Savings',amt:1000,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-17',desc:'Maggie for Mama visit',cat:'Food & Dining',amt:90,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-17',desc:'Sweets + Flowers Monday Fast',cat:'Spiritual/Devotion',amt:200,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-18',desc:'Rent + Electricity Bill',cat:'Housing & Rent',amt:7300,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-18',desc:'Mpokket EMI — Personal Loan',cat:'Debt Repayment',amt:977,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-18',desc:'Mpokket EMI — Cooler Loan',cat:'Debt Repayment',amt:980,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-18',desc:'Drinking Water Jar',cat:'Utilities & Bills',amt:30,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-18',desc:'Smoking x2 with Sudhir',cat:'Lifestyle/Vices',amt:52,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-19',desc:'Ice Cream — DMart',cat:'Food & Dining',amt:68,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-20',desc:'Ice Cream for Family',cat:'Food & Dining',amt:130,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-21',desc:'Bella Vita Body Wash',cat:'Personal Care',amt:296,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-21',desc:'Airtel SIM Recharge',cat:'Utilities & Bills',amt:399,type:'expense',mode:'Credit Card'},
+  {date:'2026-05-23',desc:'Jio SIM Recharge',cat:'Utilities & Bills',amt:299,type:'expense',mode:'Credit Card'},
+  {date:'2026-05-24',desc:'Black Jeans from Rajwada',cat:'Clothing & Shopping',amt:400,type:'expense',mode:'Credit Card'},
+  {date:'2026-05-24',desc:'Mummy Kurti',cat:'Family Gifting',amt:513,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-24',desc:'Sweets + Chips Monday Fast',cat:'Spiritual/Devotion',amt:220,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-24',desc:'Milk + Curd + Flowers Monday Fast',cat:'Spiritual/Devotion',amt:80,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-25',desc:'Smoking after office',cat:'Lifestyle/Vices',amt:13,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-26',desc:'Fuel for Bike',cat:'Transport',amt:280,type:'expense',mode:'Credit Card'},
+  {date:'2026-05-08',desc:'White Slip-ons from Zudio',cat:'Clothing & Shopping',amt:300,type:'expense',mode:'Cash'},
+  {date:'2026-05-22',desc:'Water Tanker for Home',cat:'Utilities & Bills',amt:300,type:'expense',mode:'Cash'},
+  {date:'2026-05-13',desc:'Given to Didi',cat:'Family Transfers',amt:200,type:'expense',mode:'Cash'},
+  {date:'2026-05-14',desc:'Given to Mummy (Papa reimb)',cat:'Family/Pocket Money',amt:1000,type:'expense',mode:'Cash'},
+  {date:'2026-05-04',desc:'Apples Falahar Monday Fast',cat:'Spiritual/Devotion',amt:111,type:'expense',mode:'Cash'},
+  {date:'2026-05-17',desc:'Biscuits for Kaalu dog',cat:'Pet/Animal Care',amt:10,type:'expense',mode:'HDFC Bank'},
+  {date:'2026-05-03',desc:'Papa reimbursement — Milk',cat:'Reimbursement',amt:170,type:'income',mode:'Cash'},
+  {date:'2026-05-14',desc:'Papa reimbursement — Mummy',cat:'Reimbursement',amt:1000,type:'income',mode:'Cash'},
+  {date:'2026-05-25',desc:'Returned by Manish Jain',cat:'Returned Money',amt:500,type:'income',mode:'HDFC Bank'},
+];
+
+let txns=[];
+let activeMon=4;
+let showAmts=false;
+let txnType='expense';
+let yrChart=null;
+
+const STORE_KEY='ft2026_v3';
+function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify(txns));}catch(e){}}
+function load(){try{const d=localStorage.getItem(STORE_KEY);if(d)txns=JSON.parse(d);else{txns=MAY_SEED;save();}}catch(e){txns=MAY_SEED;}}
+
+function fmt(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
+function fmtK(n){return n>=1000?'₹'+(n/1000).toFixed(1)+'k':fmt(n);}
+function txnsMon(m){return txns.filter(t=>{const d=new Date(t.date);return d.getFullYear()===2026&&d.getMonth()===m;});}
+function incMon(m){return txnsMon(m).filter(t=>t.type==='income').reduce((s,t)=>s+t.amt,0);}
+function expMon(m){return txnsMon(m).filter(t=>t.type==='expense').reduce((s,t)=>s+t.amt,0);}
+function trfMon(m){return txnsMon(m).filter(t=>t.type==='transfer');}
+function catSpend(m){const r={};txnsMon(m).filter(t=>t.type==='expense').forEach(t=>{r[t.cat]=(r[t.cat]||0)+t.amt;});return r;}
+
+function setType(t){
+  txnType=t;
+  document.querySelectorAll('.ttype').forEach(el=>{
+    el.className='ttype';
+    if(el.dataset.type===t) el.classList.add(`active-${t==='expense'?'exp':t==='income'?'inc':'trf'}`);
+  });
+  document.getElementById('add-btn-label').textContent=t==='expense'?'Add Expense':t==='income'?'Add Income':'Add Transfer';
+  document.getElementById('cat-row-wrap').style.display=t==='transfer'?'none':'block';
+  document.getElementById('transfer-row').style.display=t==='transfer'?'grid':'none';
+  const modeLabel=t==='income'?'To account':'Account';
+}
+
+function renderSidebar(){
+  const el=document.getElementById('sb-months');
+  el.innerHTML=MONTHS.map((m,i)=>{
+    const sp=expMon(i);const ic=incMon(i);
+    const hasDat=txnsMon(i).length>0;
+    return `<div class="sb-month${i===activeMon?' active':''}" onclick="switchMon(${i})">
+      <div class="sb-month-name">
+        <div class="sb-dot${hasDat?' has':''}"></div>${m}
+      </div>
+      <div class="sb-amt">${hasDat?fmtK(sp):''}</div>
+    </div>`;
+  }).join('');
+}
+
+function switchMon(m){
+  activeMon=m;
+  const today=new Date();
+  document.getElementById('f-date').value=`2026-${String(m+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  renderAll_dash();
+  showView('dashboard');
+}
+
+function renderKPIs(){
+  const inc=incMon(activeMon);
+  const exp=expMon(activeMon);
+  const net=inc-exp;
+  const rate=inc>0?Math.round(net/inc*100):0;
+  const inv=(catSpend(activeMon)['Investments/Savings']||0);
+  const trfs=trfMon(activeMon);
+  const g=document.getElementById('kgrid');
+  g.innerHTML=`
+    <div class="kcard g"><div class="klbl">Income</div><div class="kval g">${fmt(inc)}</div><div class="ksub">${txnsMon(activeMon).filter(t=>t.type==='income').length} income entries</div></div>
+    <div class="kcard r"><div class="klbl">Expenses</div><div class="kval ${exp>inc?'r':'a'}">${fmt(exp)}</div><div class="ksub">${txnsMon(activeMon).filter(t=>t.type==='expense').length} transactions</div></div>
+    <div class="kcard ${net>=0?'g':'r'}"><div class="klbl">Net savings</div><div class="kval ${net>=0?'g':'r'}">${net>=0?'':'-'}${fmt(Math.abs(net))}</div><div class="ksub">Rate: ${rate}% ${rate>=20?'✓ on target':'↓ below 20%'}</div></div>
+    <div class="kcard b"><div class="klbl">Transfers</div><div class="kval b">${trfs.length}</div><div class="ksub">${fmt(trfs.reduce((s,t)=>s+t.amt,0))} moved</div></div>`;
+
+  const alert=document.getElementById('alert-bar');
+  const msg=document.getElementById('alert-msg');
+  if(exp>inc&&inc>0){alert.classList.add('show');msg.textContent=`Deficit of ${fmt(exp-inc)} — spent more than income in ${MONTHS[activeMon]}. Savings rate: ${rate}%.`;}
+  else alert.classList.remove('show');
+}
+
+function renderCatTracker(){
+  const cats=catSpend(activeMon);
+  const el=document.getElementById('cat-tracker');
+  el.innerHTML=Object.entries(BUDGETS).map(([cat,lim])=>{
+    const sp=cats[cat]||0;if(!sp&&!showAmts)return'';
+    const pct=Math.min(sp/lim,1);
+    const r=pct>=1?'over':pct>=0.8?'warn':'safe';
+    const d=showAmts?fmtK(sp):`${Math.round(sp/lim*100)}%`;
+    return `<div class="cat-row">
+      <div class="cat-name" style="color:${CAT_COLORS[cat]||'#8ba3c0'}">${cat}</div>
+      <div class="track"><div class="fill ${r}" style="width:${Math.round(pct*100)}%"></div></div>
+      <div class="cpct ${r}">${d}</div>
+    </div>`;
+  }).filter(Boolean).join('')||'<div style="font-size:11px;color:var(--txt3);text-align:center;padding:16px 0">No expenses logged this month</div>';
+}
+
+function toggleAmts(){showAmts=!showAmts;document.getElementById('toggle-lbl').textContent=showAmts?'Show %':'Show amounts';renderCatTracker();}
+
+function renderRecent(){
+  const list=txnsMon(activeMon).slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
+  const el=document.getElementById('recent-list');
+  if(!list.length){el.innerHTML='<div style="font-size:11px;color:var(--txt3);text-align:center;padding:10px 0">No entries yet</div>';return;}
+  el.innerHTML=list.map(t=>{
+    const col=CAT_COLORS[t.cat]||'#64748b';
+    const d=new Date(t.date);const ds=`${d.getDate()} ${MONTHS[d.getMonth()]}`;
+    const idx=txns.indexOf(t);
+    const tsign=t.type==='income'?'+':t.type==='transfer'?'⇄':'-';
+    return `<div class="txn-item">
+      <div class="tdot" style="background:${col}"></div>
+      <div class="tdesc">${t.desc}</div>
+      <div class="tdate">${ds}</div>
+      <div class="ttype-badge ${t.type==='income'?'inc':t.type==='transfer'?'trf':'exp'}">${t.type}</div>
+      <div class="tamt ${t.type==='income'?'inc':t.type==='transfer'?'trf':'exp'}">${tsign}${fmt(t.amt)}</div>
+      <button class="tdel-btn" onclick="delTxn(${idx})" aria-label="delete"><i class="ti ti-x" style="font-size:12px"></i></button>
+    </div>`;
+  }).join('');
+}
+
+function renderCF(){
+  const inc=incMon(activeMon);
+  const exp=expMon(activeMon);
+  const net=inc-exp;
+  const trfs=trfMon(activeMon);
+  document.getElementById('cf-detail').innerHTML=`
+    <div class="cf-row"><span class="cf-label">Total income</span><span class="cf-val" style="color:var(--green)">${fmt(inc)}</span></div>
+    <div class="cf-row"><span class="cf-label">Total expenses</span><span class="cf-val" style="color:var(--red)">${fmt(exp)}</span></div>
+    <div class="cf-row"><span class="cf-label">Net cash flow</span><span class="cf-val" style="color:${net>=0?'var(--green)':'var(--red)'}">${net>=0?'+':''}${fmt(net)}</span></div>
+    <div class="cf-row"><span class="cf-label">Savings rate</span><span class="cf-val" style="color:${net/Math.max(inc,1)*100>=20?'var(--green)':'var(--amber)'}">${inc>0?Math.round(net/inc*100):0}%</span></div>`;
+  const tl=document.getElementById('trf-list');
+  if(!trfs.length){tl.innerHTML='<div style="font-size:11px;color:var(--txt3)">No transfers this month</div>';return;}
+  tl.innerHTML=trfs.map(t=>{
+    const idx=txns.indexOf(t);
+    const toAcc=t.to||'—';
+    return `<div class="txn-item">
+      <div class="tdot" style="background:var(--blue)"></div>
+      <div class="tdesc">${t.desc}</div>
+      <div class="tdate">${new Date(t.date).getDate()} ${MONTHS[new Date(t.date).getMonth()]}</div>
+      <div class="ttype-badge trf">${t.mode} → ${toAcc}</div>
+      <div class="tamt trf">⇄${fmt(t.amt)}</div>
+      <button class="tdel-btn" onclick="delTxn(${idx})" aria-label="delete"><i class="ti ti-x" style="font-size:12px"></i></button>
+    </div>`;
+  }).join('');
+}
+
+function renderYrChart(){
+  const labels=MONTHS;
+  const incData=MONTHS.map((_,i)=>Math.round(incMon(i)));
+  const expData=MONTHS.map((_,i)=>Math.round(expMon(i)));
+  const netData=MONTHS.map((_,i)=>Math.round(incMon(i)-expMon(i)));
+  if(yrChart)yrChart.destroy();
+  yrChart=new Chart(document.getElementById('yrChart'),{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        {label:'Income',data:incData,backgroundColor:MONTHS.map((_,i)=>i===activeMon?'#00e5a0':'#00e5a020'),borderColor:MONTHS.map((_,i)=>i===activeMon?'#00e5a0':'#00e5a040'),borderWidth:1,borderRadius:3,borderSkipped:false},
+        {label:'Expense',data:expData,backgroundColor:MONTHS.map((_,i)=>i===activeMon?'#ff4757':'#ff475720'),borderColor:MONTHS.map((_,i)=>i===activeMon?'#ff4757':'#ff475740'),borderWidth:1,borderRadius:3,borderSkipped:false},
+        {label:'Net',data:netData,type:'line',borderColor:'#4a9eff',backgroundColor:'transparent',borderWidth:2,pointBackgroundColor:MONTHS.map((_,i)=>i===activeMon?'#4a9eff':'#4a9eff80'),pointRadius:4,tension:.3,yAxisID:'y'}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#0b1628',borderColor:'#162338',borderWidth:1,titleColor:'#e2ecf8',bodyColor:'#8ba3c0',callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmt(ctx.parsed.y)}`}}},
+      scales:{
+        x:{ticks:{color:'#3d5a7a',font:{size:10}},grid:{display:false},border:{color:'#162338'},ticks:{autoSkip:false,maxRotation:0}},
+        y:{ticks:{color:'#3d5a7a',font:{size:10},callback:v=>fmtK(v)},grid:{color:'#0d1e33'},border:{color:'transparent'}}
+      },
+      onClick:(_,els)=>{if(els.length)switchMon(els[0].index);}
+    }
+  });
+}
+
+function renderAll_dash(){
+  document.getElementById('page-title').textContent=`${MONTHS[activeMon].toUpperCase()} 2026`;
+  document.getElementById('recent-month-lbl').textContent=MONTHS[activeMon];
+  document.getElementById('cf-month-lbl').textContent=`${MONTHS_FULL[activeMon]} 2026`;
+  renderSidebar();renderKPIs();renderCatTracker();renderRecent();renderCF();renderYrChart();
+}
+
+function addTxn(){
+  const desc=document.getElementById('f-desc').value.trim();
+  const amt=parseFloat(document.getElementById('f-amt').value);
+  const date=document.getElementById('f-date').value;
+  const mode=document.getElementById('f-mode').value;
+  const fb=document.getElementById('feedback');
+  if(!desc||!amt||amt<=0||!date){fb.innerHTML='<span style="color:var(--red)">Please fill description, date and amount.</span>';return;}
+  let cat,to='';
+  if(txnType==='transfer'){
+    cat=document.getElementById('f-from').value+' → '+document.getElementById('f-to').value;
+    to=document.getElementById('f-to').value;
+  } else {
+    const sel=document.getElementById('f-cat').value;
+    cat=sel==='auto'?autocat(desc,txnType):sel;
+  }
+  const t={date,desc,cat,amt,type:txnType,mode,to};
+  txns.push(t);save();
+  const mon=new Date(date).getMonth();
+  if(mon!==activeMon)switchMon(mon);else renderAll_dash();
+  const col=CAT_COLORS[cat]||'#8ba3c0';
+  let msg=`<span style="color:var(--green)">Recorded ${fmt(amt)} — ${cat}</span>`;
+  if(txnType==='expense'){
+    const cs=catSpend(activeMon);const lim=BUDGETS[cat]||500;const pct=(cs[cat]||0)/lim;
+    if(pct>=1)msg=`<span style="color:var(--red)">🚨 ${cat} limit breached! ${fmt(cs[cat]||0)} / ${fmt(lim)}</span>`;
+    else if(pct>=0.8)msg=`<span style="color:var(--amber)">⚠️ ${cat} at ${Math.round(pct*100)}%</span>`;
+  }
+  fb.innerHTML=msg;
+  document.getElementById('f-desc').value='';document.getElementById('f-amt').value='';
+  setTimeout(()=>{fb.innerHTML='';},4000);
+}
+
+function delTxn(i){if(i<0||i>=txns.length)return;txns.splice(i,1);save();renderAll_dash();renderAll();}
+
+function populateCatFilter(){
+  const all=[...new Set(txns.map(t=>t.cat))].sort();
+  const el=document.getElementById('filter-cat');
+  el.innerHTML='<option value="">All categories</option>'+all.map(c=>`<option value="${c}">${c}</option>`).join('');
+  const mel=document.getElementById('filter-mon');
+  mel.innerHTML='<option value="">All months</option>'+MONTHS.map((m,i)=>`<option value="${i}">${m} 2026</option>`).join('');
+}
+
+function renderAll(){
+  populateCatFilter();
+  const q=(document.getElementById('search-q')?.value||'').toLowerCase();
+  const fm=document.getElementById('filter-mon')?.value;
+  const ft=document.getElementById('filter-type')?.value||'';
+  const fc=document.getElementById('filter-cat')?.value||'';
+  let list=[...txns].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(q)list=list.filter(t=>t.desc.toLowerCase().includes(q)||t.cat.toLowerCase().includes(q));
+  if(fm!==''&&fm!==null&&fm!==undefined)list=list.filter(t=>new Date(t.date).getMonth()===parseInt(fm));
+  if(ft)list=list.filter(t=>t.type===ft);
+  if(fc)list=list.filter(t=>t.cat===fc);
+  const tb=document.getElementById('all-tbody');
+  tb.innerHTML=list.slice(0,100).map(t=>{
+    const col=CAT_COLORS[t.cat]||'#64748b';
+    const d=new Date(t.date);const ds=`${d.getDate()} ${MONTHS[d.getMonth()]}`;
+    const idx=txns.indexOf(t);
+    const tsign=t.type==='income'?'+':t.type==='transfer'?'⇄':'-';
+    return `<tr>
+      <td style="color:var(--txt3);font-family:var(--mono);font-size:11px">${ds}</td>
+      <td style="color:var(--txt)">${t.desc}</td>
+      <td><span class="ttype-badge ${t.type==='income'?'inc':t.type==='transfer'?'trf':'exp'}">${t.type}</span></td>
+      <td><span style="font-size:11px;color:${col}">${t.cat}</span></td>
+      <td style="color:var(--txt3);font-size:11px">${t.mode}</td>
+      <td style="font-family:var(--mono);font-weight:700;color:${t.type==='income'?'var(--green)':t.type==='transfer'?'var(--blue)':'var(--red)'}">${tsign}${fmt(t.amt)}</td>
+      <td><button class="tdel-btn" onclick="delTxn(${idx})" aria-label="delete"><i class="ti ti-trash" style="font-size:13px"></i></button></td>
+    </tr>`;
+  }).join('');
+  const total=list.reduce((s,t)=>s+(t.type==='expense'?t.amt:0),0);
+  document.getElementById('all-count').textContent=`${list.length} transactions shown · Total expense: ${fmt(total)}`;
+}
+
+function showView(v){
+  document.getElementById('view-dashboard').style.display=v==='dashboard'?'block':'none';
+  document.getElementById('view-all').style.display=v==='all'?'block':'none';
+  if(v==='all'){populateCatFilter();renderAll();}
+}
+
+function exportCSV(){
+  const rows=[['Date','Description','Type','Category','Account','To Account','Amount'],...txns.sort((a,b)=>new Date(a.date)-new Date(b.date)).map(t=>[t.date,`"${t.desc}"`,t.type,t.cat,t.mode,t.to||'',t.amt])];
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='finance_2026.csv';a.click();
+}
+
+function clearAll(){
+  if(confirm('Clear ALL transaction data for 2026? This cannot be undone.')){txns=[];save();renderAll_dash();}}
+
+function init(){
+  load();
+  const today=new Date();
+  document.getElementById('f-date').value=`2026-05-${String(today.getDate()).padStart(2,'0')}`;
+  setType('expense');
+  renderAll_dash();
+  populateCatFilter();
+}
+init();
+</script>
+</body>
+</html>
+HTMLEOF
+wc -l /home/claude/finance_tracker_2026.html
+Output
+
+780 /home/claude/finance_tracker_2026.html
